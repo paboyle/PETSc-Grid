@@ -591,7 +591,7 @@ static PetscErrorCode SetGauge_Grid(DM dm, LatticeGaugeField & Umu)
   }
   std::cout << " Set "<<j<<" gauge links "<<std::endl;
   std::cout << " Grid lsites "<<lsites<<std::endl;
-  //  PetscCall(VecViewFromOptions(auxVec, NULL, "-gauge_view"));
+  PetscCall(VecViewFromOptions(auxVec, NULL, "-gauge_view"));
   PetscFunctionReturn(0);
 }
 int CheckDwWithGrid(DM dm,Vec psi,Vec res)
