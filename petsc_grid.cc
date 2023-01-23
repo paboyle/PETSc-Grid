@@ -2,7 +2,6 @@ static char help[] = "Fermions on a hypercubic lattice.\n\n";
 
 #include <petscdmplex.h>
 #include <petscsnes.h>
-#include <complex.h>
 
 /* Common operations:
 
@@ -210,11 +209,11 @@ static PetscErrorCode ComputeAction(PetscInt d, PetscBool forward, const PetscSc
 */
 static PetscErrorCode ComputeResidual(DM dm, Vec u, Vec f)
 {
-  PetscSection       s;
+  DM                 dmAux;
+  Vec                gauge;
+  PetscSection       s, sGauge;
   const PetscScalar *ua;
-  const PetscScalar *ga;
-  PetscScalar       *fa;
-  PetscScalar        *id;
+  PetscScalar       *fa, *link;
   PetscInt           dim, vStart, vEnd;
 
   PetscFunctionBeginUser;
@@ -223,37 +222,40 @@ static PetscErrorCode ComputeResidual(DM dm, Vec u, Vec f)
   PetscCall(DMPlexGetDepthStratum(dm, 0, &vStart, &vEnd));
   PetscCall(VecGetArrayRead(u, &ua));
   PetscCall(VecGetArray(f, &fa));
-  Vec gauge;
-  PetscCall(DMGetAuxiliaryVec(dm, NULL, 0, 0, &gauge)); // Get vertex list from DM Aux vector
-  PetscCall(VecGetArrayRead(gauge, &ga));
 
+  PetscCall(DMGetAuxiliaryVec(dm, NULL, 0, 0, &gauge));
+  PetscCall(VecGetDM(gauge, &dmAux));
+  PetscCall(DMGetLocalSection(dmAux, &sGauge));
+  PetscCall(VecGetArray(gauge, &link));
   // Loop over y
   for (PetscInt v = vStart; v < vEnd; ++v) {
     const PetscInt *supp;
-    PetscInt        xdof, xoff, uoff;
+    PetscInt        xdof, xoff;
 
     PetscCall(DMPlexGetSupport(dm, v, &supp));
     PetscCall(PetscSectionGetDof(s, v, &xdof));
     PetscCall(PetscSectionGetOffset(s, v, &xoff));
-    PetscCall(PetscSectionGetOffset(s, v, &uoff));
     // Diagonal
     for (PetscInt i = 0; i < xdof; ++i) fa[xoff + i] += (M + 4) * ua[xoff + i];
     // Loop over mu
     for (PetscInt d = 0; d < dim; ++d) {
       const PetscInt *cone;
-      PetscInt        yoff;
+      PetscInt        yoff, goff;
 
       // Left action -(1 + \gamma_\mu)/2 \otimes U^\dagger_\mu(y) \delta_{x - \mu,y} \psi(y)
       PetscCall(DMPlexGetCone(dm, supp[2 * d + 0], &cone));
       PetscCall(PetscSectionGetOffset(s, cone[0], &yoff));
-      PetscCall(ComputeAction(d, PETSC_FALSE, &ga[uoff+(d+4)*9], &ua[yoff], &fa[xoff]));
+      PetscCall(PetscSectionGetOffset(sGauge, supp[2 * d + 0], &goff));
+      PetscCall(ComputeAction(d, PETSC_FALSE, &link[goff], &ua[yoff], &fa[xoff]));
       // Right edge -(1 - \gamma_\mu)/2 \otimes U_\mu(x) \delta_{x + \mu,y} \psi(y)
       PetscCall(DMPlexGetCone(dm, supp[2 * d + 1], &cone));
       PetscCall(PetscSectionGetOffset(s, cone[1], &yoff));
-      PetscCall(ComputeAction(d, PETSC_TRUE, &ga[uoff+(d)*9], &ua[yoff], &fa[xoff]));
+      PetscCall(PetscSectionGetOffset(sGauge, supp[2 * d + 1], &goff));
+      PetscCall(ComputeAction(d, PETSC_TRUE, &link[goff], &ua[yoff], &fa[xoff]));
     }
   }
   PetscCall(VecRestoreArray(f, &fa));
+  PetscCall(VecRestoreArray(gauge, &link));
   PetscCall(VecRestoreArrayRead(u, &ua));
   PetscFunctionReturn(0);
 }
@@ -330,6 +332,25 @@ static PetscErrorCode ComputeFFT(Mat FT, PetscInt Nc, Vec x, Vec p)
   PetscFunctionReturn(0);
 }
 
+// Sets each link to be the identity for the free field test
+static PetscErrorCode SetGauge_Identity(DM dm)
+{
+  DM           auxDM;
+  Vec          auxVec;
+  PetscSection s;
+  PetscScalar  id[9] = {1., 0., 0., 0., 1., 0., 0., 0., 1.};
+  PetscInt     eStart, eEnd;
+
+  PetscFunctionBegin;
+  PetscCall(DMGetAuxiliaryVec(dm, NULL, 0, 0, &auxVec));
+  PetscCall(VecGetDM(auxVec, &auxDM));
+  PetscCall(DMGetLocalSection(auxDM, &s));
+  PetscCall(DMPlexGetDepthStratum(dm, 1, &eStart, &eEnd));
+  for (PetscInt i = eStart; i < eEnd; ++i) { PetscCall(VecSetValuesSection(auxVec, s, i, id, INSERT_VALUES)); }
+  PetscCall(VecViewFromOptions(auxVec, NULL, "-gauge_view"));
+  PetscFunctionReturn(0);
+}
+
 /*
   Test the action of the Wilson operator in the free field case U = I,
 
@@ -363,6 +384,7 @@ static PetscErrorCode TestFreeField(DM dm)
   PetscFunctionBeginUser;
   PetscCall(PetscOptionsGetBool(NULL, NULL, "-const_rhs", &constRhs, NULL));
 
+  PetscCall(SetGauge_Identity(dm));
   PetscCall(DMGetLocalSection(dm, &s));
   PetscCall(DMGetGlobalVector(dm, &psi));
   PetscCall(PetscObjectSetName((PetscObject)psi, "psi"));
@@ -379,7 +401,7 @@ static PetscErrorCode TestFreeField(DM dm)
   if (constRhs) PetscCall(VecSet(psi, 1.));
   else PetscCall(VecSetRandom(psi, r));
   PetscCall(PetscRandomDestroy(&r));
-  
+
   PetscCall(DMGetDimension(dm, &dim));
   PetscCall(DMPlexGetDepthStratum(dm, 0, &vStart, &vEnd));
   PetscCall(PetscObjectQuery((PetscObject)dm, "_extent", (PetscObject *)&c));
@@ -392,7 +414,7 @@ static PetscErrorCode TestFreeField(DM dm)
     V *= extent[d];
   }
   PetscCall(ComputeResidual(dm, psi, eta));
-  PetscCall(VecViewFromOptions(psi, NULL, "-psi_view"));
+  PetscCall(VecViewFromOptions(eta, NULL, "-psi_view"));
   PetscCall(VecViewFromOptions(eta, NULL, "-eta_view"));
   PetscCall(ComputeFFT(FT, Nc, psi, psiHat));
   PetscCall(VecScale(psiHat, 1. / V));
@@ -539,6 +561,39 @@ int GridToPetsc(DM dm,Vec psi,Lattice<vobj> &g_psi)
   assert(idx==lsites);
   PetscFunctionReturn(0);
 }
+static PetscErrorCode SetGauge_Grid(DM dm, LatticeGaugeField & Umu)
+{
+  typedef typename LatticeGaugeField::scalar_object sobj;
+  GridBase *grid = Umu.Grid();
+  uint64_t lsites = grid->lSites();
+  std::vector<sobj> scalardata(lsites);
+  unvectorizeToLexOrdArray(scalardata,Umu);
+  
+  DM           auxDM;
+  Vec          auxVec;
+  PetscSection s;
+  PetscScalar  *id;
+  PetscInt     eStart, eEnd;
+
+  PetscFunctionBegin;
+  PetscCall(DMGetAuxiliaryVec(dm, NULL, 0, 0, &auxVec));
+  PetscCall(VecGetDM(auxVec, &auxDM));
+  PetscCall(DMGetLocalSection(auxDM, &s));
+  PetscCall(DMPlexGetDepthStratum(dm, 1, &eStart, &eEnd));
+  int j=0;
+  ColourMatrixD *Grid_p = (ColourMatrixD *)&scalardata[0];
+  // Ordering of edges ???
+  for (PetscInt i = eStart; i < eEnd; ++i) {
+    ColourMatrixD U = Grid_p[j];
+    id = (PetscScalar *) &U;
+    PetscCall(VecSetValuesSection(auxVec, s, i, id, INSERT_VALUES));
+    j++;
+  }
+  std::cout << " Set "<<j<<" gauge links "<<std::endl;
+  std::cout << " Grid lsites "<<lsites<<std::endl;
+  //  PetscCall(VecViewFromOptions(auxVec, NULL, "-gauge_view"));
+  PetscFunctionReturn(0);
+}
 int CheckDwWithGrid(DM dm,Vec psi,Vec res)
 {
   Coordinate latt_size   = GridDefaultLatt();
@@ -563,11 +618,8 @@ int CheckDwWithGrid(DM dm,Vec psi,Vec res)
   U_GT = Umu;
   // Make a random xform to the gauge field
   SU<Nc>::RandomGaugeTransform(pRNG,U_GT,g); // Unit gauge
-
-  Vec gauge;
-  PetscCall(DMGetAuxiliaryVec(dm, NULL, 0, 0, &gauge)); // Get vertex list from DM Aux vector
-
-	    
+  
+  
   ////////////////////////////////////////////////////
   // Wilson test
   ////////////////////////////////////////////////////
@@ -576,15 +628,19 @@ int CheckDwWithGrid(DM dm,Vec psi,Vec res)
   LatticeFermionD    p_res(&GRID); // Petsc result
   LatticeFermionD    diff(&GRID); // Petsc result
 
-  PetscCall(ComputeResidual(dm, psi, res)); // Applies DW
   PetscToGrid(dm,psi,g_src);
-  PetscToGrid(dm,res,p_res); 
   
   RealD mass=M;
   WilsonFermionD Dw(U_GT,GRID,RBGRID,mass);
     
   Dw.M(g_src,g_res);
 
+  std::cout << "Setting gauge to Grid "<<std::endl;
+  SetGauge_Grid(dm,U_GT);
+
+  PetscCall(ComputeResidual(dm, psi, res)); // Applies DW
+  PetscToGrid(dm,res,p_res); 
+  
   diff = p_res - g_res;
 
   std::cout << "******************************"<<std::endl;
@@ -622,6 +678,8 @@ int main(int argc, char **argv)
   PetscCall(PetscRandomSetType(r, PETSCRAND48));
   PetscCall(VecSetRandom(u, r));
   PetscCall(PetscRandomDestroy(&r));
+
+  PetscCall(SetGauge_Identity(dm));
 
   Grid::CheckDwWithGrid(dm,u,f);
 

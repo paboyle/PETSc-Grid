@@ -226,7 +226,9 @@ static PetscErrorCode ComputeResidual(DM dm, Vec u, Vec f)
   for (PetscInt v = vStart; v < vEnd; ++v) {
     const PetscInt *supp;
     PetscInt        xdof, xoff;
-
+    PetscInt Ns;
+    PetscCall(DMPlexGetSupportSize(dm, v, &Ns));
+    printf("Nsupport = %d\n",(int)Ns);
     PetscCall(DMPlexGetSupport(dm, v, &supp));
     PetscCall(PetscSectionGetDof(s, v, &xdof));
     PetscCall(PetscSectionGetOffset(s, v, &xoff));
