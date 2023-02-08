@@ -11,7 +11,6 @@ int main(int argc,char **argv)
   for(int y=x;y<L;y++){
   for(int z=y;z<L;z++){
   for(int t=z;t<L;t++){
-    double ps=2*s*pi/L;
     double px=2*x*pi/L;
     double py=2*y*pi/L;
     double pz=2*z*pi/L;
