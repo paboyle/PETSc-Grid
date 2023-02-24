@@ -754,12 +754,12 @@ that if $\lambda_i$ is complex (has non-zero imaginary component) then $\lambda_
 
 Consider two right eigenvectors $\phi_i$ and $\phi_j$ with eigenvalues $\lambda_i$ and $\lambda_j$
 \begin{eqnarray}
-  \phi_i^\dagger \gamma_5 D \phi_j &=& \lambda_i^\ast \phi_i^\dagger \gamma_5 D \phi_j\\
-  &=& \lambda_j \phi_i^\dagger \gamma_5 D \phi_j
+  \phi_i^\dagger \gamma_5 D \phi_j &=& \lambda_i^\ast \phi_i^\dagger \gamma_5 \phi_j\\
+  &=& \lambda_j \phi_i^\dagger \gamma_5 \phi_j
 \end{eqnarray}
 So,
 $$
-(\lambda_i^\ast - \lambda_j)   \phi_i^\dagger \gamma_5 D \phi_j = 0
+(\lambda_i^\ast - \lambda_j)   \phi_i^\dagger \gamma_5 \phi_j = 0
 $$
 and either
 $$
@@ -767,17 +767,17 @@ $$
 $$
 OR
 $$
-\phi_i^\dagger \gamma_5 D \phi_j = 0
+\phi_i^\dagger \gamma_5  \phi_j = 0
 $$
 
 When $i=j$ we see that either the eigenvalue is real and $\phi_i^\dagger \gamma_5 D \phi_j \ne 0$ is allowed,
-or the eigenvalue is complex and $\phi_i^\dagger \gamma_5 D \phi_j = 0$.
+or the eigenvalue has non-zero imaginary part and $\phi_i^\dagger \gamma_5 D \phi_j = 0$.
 
 In other words:
 \begin{itemize}
 \item complex eigenvalues have zero chirality and come in conjugate pairs
 \item real eigenvalues in general have non-zero chirality
-\item unrelated eigenvalues have vanishing chiral inner product $\phi_i^\dagger \gamma_5 D \phi_j = 0$
+\item Eigenvectors with unrelated eigenvalues have vanishing chiral inner product $\phi_i^\dagger \gamma_5 D \phi_j = 0$
 \end{itemize}
 
 \subsection{Gauge invariance}
