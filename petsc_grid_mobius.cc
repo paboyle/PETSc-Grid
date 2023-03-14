@@ -5,16 +5,18 @@
 /*includes the global parameters*/
 #include "petsc_fermion_parameters.h"
 
-static char help[] = "Shamir Domain Wall fermions on a hypercubic lattice.\n\n";
+static char help[] = "Mobius Domain Wall fermions on a hypercubic lattice.\n\n";
 NAMESPACE_BEGIN(Grid);
-int CheckDwfWithGrid(DM dm,Vec psi,Vec res)
+int CheckMobiusWithGrid(DM dm,Vec psi,Vec res)
 {
-  DomainWallParameters p;
+  MobiusDomainWallParameters p;
   p.M5   = 1.4;  
   p.m    = 0.01;
   p.Ls   = 8;
+  p.c    = 0.5;
+  p.b    = 1.5;
   
-  SetDomainWallParameters(&p);
+  SetMobiusDomainWallParameters(&p);
   
   Coordinate latt_size   = GridDefaultLatt();
   Coordinate simd_layout = GridDefaultSimd(Nd,vComplexD::Nsimd());
@@ -31,13 +33,13 @@ int CheckDwfWithGrid(DM dm,Vec psi,Vec res)
   LatticeGaugeField     U_GT(&GRID); // Gauge transformed field
   LatticeColourMatrix   g(&GRID);    // local Gauge xform matrix
 
-  if (0) {
+  if (1) {
 
-    SU3::TepidConfiguration(pRNG,Umu); /*random config*/
-    //Umu = ComplexD(1.0,0.0);  /*Unit config*/
+    //    SU3::TepidConfiguration(pRNG,Umu); /*random config*/
+    Umu = ComplexD(0.0,0.0);  /*Unit config*/
     U_GT = Umu;
     // Make a random xform to the gauge field
-    SU<Nc>::RandomGaugeTransform(pRNG,U_GT,g); // Unit gauge
+    //    SU<Nc>::RandomGaugeTransform(pRNG,U_GT,g); // Unit gauge
   } else {
     std::string name ("ckpoint_lat.4000");
     std::cout<<GridLogMessage <<"Loading configuration from "<< name<<std::endl;
@@ -47,7 +49,7 @@ int CheckDwfWithGrid(DM dm,Vec psi,Vec res)
   }
   
   ////////////////////////////////////////////////////
-  // DWF test
+  // Mobius test
   ////////////////////////////////////////////////////
   GridCartesian         * FGrid   = SpaceTimeGrid::makeFiveDimGrid(p.Ls,&GRID);
   GridRedBlackCartesian * FrbGrid = SpaceTimeGrid::makeFiveDimRedBlackGrid(p.Ls,&GRID);
@@ -62,13 +64,13 @@ int CheckDwfWithGrid(DM dm,Vec psi,Vec res)
 
   PetscToGrid(dm,psi,g_src);
   
-  DomainWallFermionD DWF(U_GT,*FGrid,*FrbGrid,GRID,RBGRID,p.m,p.M5);
+  MobiusFermionD MDWF(U_GT,*FGrid,*FrbGrid,GRID,RBGRID,p.m,p.M5,p.b,p.c);
     
-  //  DWF.Dhop(g_src,g_res,0); Passes with no 5d term
+  //  MDWF.Dhop(g_src,g_res,0); Passes with no 5d term
   RealD t0=usecond();
-  DWF.M(g_src,g_res);
+  MDWF.M(g_src,g_res);
   RealD t1=usecond();
-  PetscCall(Ddwf(dm, psi, res)); // Applies DW
+  PetscCall(Dmobius(dm, psi, res)); // Applies DW
   RealD t2=usecond();
   PetscToGrid(dm,res,p_res); 
   
@@ -82,9 +84,9 @@ int CheckDwfWithGrid(DM dm,Vec psi,Vec res)
   std::cout << "Petsc " << t2-t1 <<" us"<<std::endl;
   std::cout << "******************************"<<std::endl;
 
-  DWF.Mdag(g_src,g_res);
+  MDWF.Mdag(g_src,g_res);
 
-  PetscCall(DdwfDag(dm, psi, res)); // Applies DW
+  PetscCall(DmobiusDag(dm, psi, res)); // Applies DW
   PetscToGrid(dm,res,p_res); 
   
   diff = p_res - g_res;
@@ -126,7 +128,7 @@ int main(int argc, char **argv)
   PetscCall(VecSetRandom(u, r));
   PetscCall(PetscRandomDestroy(&r));
 
-  Grid::CheckDwfWithGrid(dm,u,f);
+  Grid::CheckMobiusWithGrid(dm,u,f);
 
   PetscCall(VecDestroy(&f));
   PetscCall(VecDestroy(&u));
