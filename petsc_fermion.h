@@ -315,7 +315,7 @@ static PetscErrorCode DdwfInternal(DM dm, Vec u, Vec f,PetscBool dag)
     PetscCall(PetscSectionGetDof(s, v, &xdof));
     PetscCall(PetscSectionGetOffset(s, v, &xoff));
     // Diagonal
-    for (PetscInt i = 0; i < xdof; ++i) fa[xoff + i] = (4-p->M5 ) * ua[xoff + i];
+    for (PetscInt i = 0; i < xdof; ++i) fa[xoff + i] = (5-p->M5 ) * ua[xoff + i];
     // Loop over mu
     for (PetscInt d = 0; d < dim; ++d) {
       const PetscInt *cone;

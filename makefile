@@ -4,15 +4,18 @@ EXAMPLESMATLAB   =
 DIRS		 = 
 CLEANFILES       = 
 
+PETSC_DIR=${HOME}/QCD/WP1/petsc
 include ${PETSC_DIR}/lib/petsc/conf/variables
 include ${PETSC_DIR}/lib/petsc/conf/rules
 include ${PETSC_DIR}/lib/petsc/conf/test
 
-GRID=/Users/peterboyle/QCD/GridInstallOpt/
+GRID=${HOME}/QCD/Grid-develop/install/
 GRID_CXX=`$(GRID)/bin/grid-config --cxx`
-GRID_CXXFLAGS=`$(GRID)/bin/grid-config --cxxflags ` -I$(GRID)/include/ -Wno-unused-local-typedef -Wno-unused-variable -Wno-reorder-ctor -Wno-unused-but-set-variable -Wno-unused-function
+GRID_CXXFLAGS=`$(GRID)/bin/grid-config --cxxflags ` -I$(GRID)/include/ -Wno-unused-variable -Wno-unused-but-set-variable -Wno-unused-function
 GRID_LIBS=`$(GRID)/bin/grid-config --libs` -lGrid
 GRID_LDFLAGS=`$(GRID)/bin/grid-config --ldflags  ` -L$(GRID)/lib/ 
 
-CXXFLAGS+=$(GRID_CXXFLAGS)
-CXX_LINKER_FLAGS+=$(GRID_LIBS) $(GRID_LDFLAGS)
+PETSC_LIB+=$(GRID_LIBS)
+CXXLINKER+=$(GRID_LDFLAGS)
+CXXCPPFLAGS+=$(GRID_CXXFLAGS)
+
