@@ -148,10 +148,180 @@ static PetscErrorCode SpinProject(PetscInt mu, PetscBool minus, PetscInt ldx, Pe
   f[3 * ldx] *= 0.5;
   PetscFunctionReturn(0);
 }
+// Apply (1 \pm \gamma_\mu)/2
+static inline void TwoSpinProject(PetscInt mu, PetscBool minus, PetscInt ldx,const PetscScalar f[],PetscScalar o[])
+{
+  const PetscReal   sign   = (minus )   ? -1. : 1.;
+  const PetscScalar fin[4] = {f[0 * ldx], f[1 * ldx], f[2 * ldx], f[3 * ldx]};
+
+  //  PetscFunctionBeginHot;
+  switch (mu) {
+  case 0:
+    o[0*ldx] = fin[0] + sign * PETSC_i * fin[3];
+    o[1*ldx] = fin[1] + sign * PETSC_i * fin[2];
+    break;
+  case 1:
+    o[0*ldx] = fin[0] - sign * fin[3];
+    o[1*ldx] = fin[1] + sign * fin[2];
+    break;
+  case 2:
+    o[0*ldx] = fin[0] + sign * PETSC_i * fin[2];
+    o[1*ldx] = fin[1] - sign * PETSC_i * fin[3];
+    break;
+  case 3:
+    o[0*ldx] = fin[0] + sign * fin[2];
+    o[1*ldx] = fin[1] + sign * fin[3];
+    break;
+  case 4:
+    if ( sign==1 ) {
+      o[0*ldx] = fin[0];
+      o[1*ldx] = fin[1];
+    } else {
+      o[0*ldx] = fin[2];
+      o[1*ldx] = fin[3];
+    }
+    break;
+  default:
+    //    SETERRQ(PETSC_COMM_SELF, PETSC_ERR_ARG_OUTOFRANGE, "Direction for gamma %" PetscInt_FMT " not in [0, 5)", mu);
+    break;
+  }
+  o[0 * ldx] *= 0.5;
+  o[1 * ldx] *= 0.5;
+  //  PetscFunctionReturn(0);
+}
+// Apply (1 \pm \gamma_\mu)/2
+static inline void TwoSpinAccumulate(PetscInt mu, PetscBool minus, PetscInt ldx, const PetscScalar f[], PetscScalar p[])
+{
+  const PetscReal   sign   = (minus )   ? -1. : 1.;
+  const PetscScalar fin[4] = {f[0 * ldx], f[1 * ldx], f[2 * ldx], f[3 * ldx]};
+
+  //  PetscFunctionBeginHot;
+  switch (mu) {
+  case 0:
+    p[0 * ldx] -= fin[0];
+    p[1 * ldx] -= fin[1];
+    p[2 * ldx] += sign * PETSC_i * fin[1];
+    p[3 * ldx] += sign * PETSC_i * fin[0];
+    break;
+  case 1:
+    p[0 * ldx] -= fin[0];
+    p[1 * ldx] -= fin[1];
+    p[2 * ldx] -= sign * fin[1];
+    p[3 * ldx] += sign * fin[0];
+    break;
+  case 2:
+    p[0 * ldx] -= fin[0];
+    p[1 * ldx] -= fin[1];
+    p[2 * ldx] += sign * PETSC_i * fin[0];
+    p[3 * ldx] -= sign * PETSC_i * fin[1];
+    break;
+  case 3:
+    p[0 * ldx] -= fin[0];
+    p[1 * ldx] -= fin[1];
+    p[2 * ldx] -= sign * fin[0];
+    p[3 * ldx] -= sign * fin[1];
+    break;
+  case 4:
+    if ( sign==1 ) {
+      p[0 * ldx] += 2*fin[0]; // Not sure of this 2x
+      p[1 * ldx] += 2*fin[1];
+    } else {
+      p[2 * ldx] += 2*fin[0];
+      p[3 * ldx] += 2*fin[1];
+    }
+    break;
+  default:
+    //    SETERRQ(PETSC_COMM_SELF, PETSC_ERR_ARG_OUTOFRANGE, "Direction for gamma %" PetscInt_FMT " not in [0, 5)", mu);
+    break;
+  }
+  //  PetscFunctionReturn(0);
+}
 /*****************************************************************************************************************
  * Wilson 4d operator
  *****************************************************************************************************************
  */
+static inline void DwilsonDhopOpt1(PetscInt mu,
+				   PetscBool forward,
+				   PetscBool dag,
+				   const PetscScalar U[],
+				   const PetscScalar psi[],
+				   PetscScalar f[])
+{
+  PetscScalar utmp[6];
+  PetscScalar  tmp[6];
+
+  // Apply (1 \pm \gamma_\mu)/2 to each color
+  PetscBool gforward;
+  if ( dag ) {
+    if ( forward ) gforward = PETSC_FALSE;
+    else           gforward = PETSC_TRUE;
+  } else {
+    gforward = forward;
+  }
+  for (PetscInt c = 0; c < 3; ++c) TwoSpinProject(mu, gforward, 3, &psi[c], &tmp[c]);
+
+  if (forward) {
+    for (PetscInt beta = 0; beta < 2; ++beta) {
+      for (PetscInt c1   = 0; c1 < 3; ++c1) {
+	utmp[beta*3+c1] = 0.0;
+	for (PetscInt c2   = 0; c2 < 3; ++c2) {
+	  utmp[beta*3+c1] += U[c1*3+c2]*tmp[beta*3+c2];
+	}
+      }
+    }
+  } else {
+    for (PetscInt beta = 0; beta < 2; ++beta) {
+      for (PetscInt c1   = 0; c1 < 3; ++c1) {
+	utmp[beta*3+c1] = 0.0;
+	for (PetscInt c2   = 0; c2 < 3; ++c2) {
+	  utmp[beta*3+c1] += PetscConjComplex(U[c2*3+c1])*tmp[beta*3+c2];
+	}
+      }
+    }
+  }
+  for (PetscInt c = 0; c < 3; ++c) TwoSpinAccumulate(mu, gforward, 3, &utmp[c], &f[c]);
+}
+
+static PetscErrorCode DwilsonDhopOpt(PetscInt mu,
+				     PetscBool forward,
+				     PetscBool dag,
+				     const PetscScalar U[], const PetscScalar psi[], PetscScalar f[])
+{
+  PetscScalar tmp[12];
+
+  PetscFunctionBeginHot;
+  if (forward) {
+    for (PetscInt beta = 0; beta < 4; ++beta) {
+      for (PetscInt c1   = 0; c1 < 3; ++c1) {
+	tmp[beta*3+c1] = 0.0;
+	for (PetscInt c2   = 0; c2 < 3; ++c2) {
+	  tmp[beta*3+c1] += U[c1*3+c2]*psi[beta*3+c2];
+	}
+      }
+    }
+  } else {
+    for (PetscInt beta = 0; beta < 4; ++beta) {
+      for (PetscInt c1   = 0; c1 < 3; ++c1) {
+	tmp[beta*3+c1] = 0.0;
+	for (PetscInt c2   = 0; c2 < 3; ++c2) {
+	  tmp[beta*3+c1] += PetscConjComplex(U[c2*3+c1])*psi[beta*3+c2];
+	}
+      }
+    }
+  }
+  // Apply (1 \pm \gamma_\mu)/2 to each color
+  PetscBool gforward;
+  if ( dag ) {
+    if ( forward ) gforward = PETSC_FALSE;
+    else           gforward = PETSC_TRUE;
+  } else {
+    gforward = forward;
+  }
+  for (PetscInt c = 0; c < 3; ++c) PetscCall(SpinProject(mu, gforward, 3, &tmp[c]));
+  // Note that we are subtracting this contribution
+  for (PetscInt i = 0; i < 12; ++i) f[i] -= tmp[i];
+  PetscFunctionReturn(0);
+}
 static PetscErrorCode DwilsonDhop(PetscInt mu,
 				  PetscBool forward,
 				  PetscBool dag,
@@ -208,25 +378,31 @@ static PetscErrorCode DwilsonInternal(DM dm, Vec u, Vec f, PetscBool dag)
     const PetscInt *supp;
     PetscInt        xdof, xoff;
 
-    PetscCall(DMPlexGetSupport(dm, v, &supp));
-    PetscCall(PetscSectionGetDof(s, v, &xdof));
-    PetscCall(PetscSectionGetOffset(s, v, &xoff));
+    DMPlexGetSupport(dm, v, &supp);
+    PetscSectionGetDof(s, v, &xdof);
+    PetscSectionGetOffset(s, v, &xoff);
     // Diagonal
     for (PetscInt i = 0; i < xdof; ++i) fa[xoff + i] = (p->M + 4) * ua[xoff + i];
     // Loop over mu
     for (PetscInt d = 0; d < dim; ++d) {
       const PetscInt *cone;
       PetscInt        yoff, goff;
+
       // Left action -(1 + \gamma_\mu)/2 \otimes U^\dagger_\mu(y) \delta_{x - \mu,y} \psi(y)
-      PetscCall(DMPlexGetCone(dm, supp[2 * d + 0], &cone));
-      PetscCall(PetscSectionGetOffset(s, cone[0], &yoff));
-      PetscCall(PetscSectionGetOffset(sGauge, supp[2 * d + 0], &goff));
-      PetscCall(DwilsonDhop(d, PETSC_FALSE, dag, &link[goff], &ua[yoff], &fa[xoff]));
+      DMPlexGetCone(dm, supp[2 * d + 0], &cone);
+      PetscSectionGetOffset(s, cone[0], &yoff);
+      PetscSectionGetOffset(sGauge, supp[2 * d + 0], &goff);
+      //PetscCall(DwilsonDhop(d, PETSC_FALSE, dag, &link[goff], &ua[yoff], &fa[xoff])); // 244ms -O0, 210ms -O3 (grid 8ms) ; 56ms
+      //PetscCall(DwilsonDhopOpt(d, PETSC_FALSE, dag, &link[goff], &ua[yoff], &fa[xoff])); // 238ms AVX2, 200ms -O3 ; debugging=0 55ms
+      DwilsonDhopOpt1(d, PETSC_FALSE, dag, &link[goff], &ua[yoff], &fa[xoff]); // 55ms , 35ms --with-debugging=0
+
       // Right edge -(1 - \gamma_\mu)/2 \otimes U_\mu(x) \delta_{x + \mu,y} \psi(y)
-      PetscCall(DMPlexGetCone(dm, supp[2 * d + 1], &cone));
-      PetscCall(PetscSectionGetOffset(s, cone[1], &yoff));
-      PetscCall(PetscSectionGetOffset(sGauge, supp[2 * d + 1], &goff));
-      PetscCall(DwilsonDhop(d, PETSC_TRUE, dag, &link[goff], &ua[yoff], &fa[xoff]));
+      DMPlexGetCone(dm, supp[2 * d + 1], &cone);
+      PetscSectionGetOffset(s, cone[1], &yoff);
+      PetscSectionGetOffset(sGauge, supp[2 * d + 1], &goff);
+      //PetscCall(DwilsonDhop(d, PETSC_TRUE, dag, &link[goff], &ua[yoff], &fa[xoff]));
+      //      PetscCall(DwilsonDhopOpt(d, PETSC_TRUE, dag, &link[goff], &ua[yoff], &fa[xoff])); 
+      DwilsonDhopOpt1(d, PETSC_TRUE, dag, &link[goff], &ua[yoff], &fa[xoff]); 
     }
   }
   PetscCall(VecRestoreArray(f, &fa));

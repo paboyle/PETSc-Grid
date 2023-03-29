@@ -59,10 +59,16 @@ int CheckDwWithGrid(DM dm,Vec psi,Vec res)
   SetGauge_Grid(dm,U_GT);
 
   std::cout << "Testing Dw "<<std::endl;
+  const int ncall = 1000;
+  const int ncallg = 1;
   RealD t0=usecond();
-  Dw.M(g_src,g_res);
+  for(int i=0;i<ncallg;i++){
+    Dw.M(g_src,g_res);
+  }
   RealD t1=usecond();
-  PetscCall(Dwilson(dm, psi, res)); // Applies DW
+  for(int i=0;i<ncall;i++){
+      PetscCall(Dwilson(dm, psi, res)); // Applies DW
+  }
   RealD t2=usecond();
   PetscToGrid(dm,res,p_res); 
   
@@ -71,8 +77,8 @@ int CheckDwWithGrid(DM dm,Vec psi,Vec res)
   std::cout << "CheckDwWithGrid Grid  " << norm2(g_res)<<std::endl;
   std::cout << "CheckDwWithGrid Petsc " << norm2(p_res)<<std::endl;
   std::cout << "CheckDwWithGrid diff  " << norm2(diff)<<std::endl;
-  std::cout << "Grid  " << t1-t0 <<" us"<<std::endl;
-  std::cout << "Petsc " << t2-t1 <<" us"<<std::endl;
+  std::cout << "Grid  " << (t1-t0)/1000/ncallg <<" ms"<<std::endl;
+  std::cout << "Petsc " << (t2-t1)/1000/ncall <<" ms"<<std::endl;
   std::cout << "******************************"<<std::endl;
 
   Dw.Mdag(g_src,g_res);
