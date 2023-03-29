@@ -60,7 +60,7 @@ int CheckDwWithGrid(DM dm,Vec psi,Vec res)
 
   std::cout << "Testing Dw "<<std::endl;
   const int ncall = 1000;
-  const int ncallg = 1;
+  const int ncallg = 1000;
   RealD t0=usecond();
   for(int i=0;i<ncallg;i++){
     Dw.M(g_src,g_res);
