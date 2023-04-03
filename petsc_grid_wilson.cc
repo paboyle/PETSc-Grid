@@ -47,6 +47,7 @@ int CheckDwWithGrid(DM dm,Vec psi,Vec res)
   LatticeFermionD    g_res(&GRID); // Grid result
   LatticeFermionD    p_res(&GRID); // Petsc result
   LatticeFermionD    diff(&GRID); // Petsc result
+  LatticeFermionD    tmp(&GRID);
 
   PetscToGrid(dm,psi,g_src);
   
@@ -59,8 +60,8 @@ int CheckDwWithGrid(DM dm,Vec psi,Vec res)
   SetGauge_Grid(dm,U_GT);
 
   std::cout << "Testing Dw "<<std::endl;
-  const int ncall = 1000;
-  const int ncallg = 1000;
+  const int ncall = 10;
+  const int ncallg = 10;
   RealD t0=usecond();
   for(int i=0;i<ncallg;i++){
     Dw.M(g_src,g_res);
@@ -94,7 +95,19 @@ int CheckDwWithGrid(DM dm,Vec psi,Vec res)
   std::cout << "CheckDwDagWithGrid diff  " << norm2(diff)<<std::endl;
   std::cout << "******************************"<<std::endl;
 
+  
   assert(norm2(diff) < 1.0e-7);
+
+  std::cout << "******************************"<<std::endl;
+  std::cout << " Wilson CGNR solve with Grid " <<std::endl;
+  std::cout << "******************************"<<std::endl;
+  MdagMLinearOperator<WilsonFermionD,LatticeFermionD> HermOp(Dw);
+  ConjugateGradient<LatticeFermionD> CG(1.0e-8,10000);
+
+  gaussian(pRNG,g_src);
+  Dw.Mdag(g_src,tmp);
+  CG(HermOp,tmp,g_res);
+
   return 0;
 }
 NAMESPACE_END(Grid);
@@ -104,7 +117,18 @@ int main(int argc, char **argv)
   Grid::Grid_init(&argc,&argv);
 
   WilsonParameters parm;
-  parm.M = 0.1;
+  parm.M = 0.1;  // 78 iters
+  parm.M = -0.5; // 174
+  parm.M = -0.7; // 318
+  parm.M = -0.75;// 403
+  parm.M = -0.80;// 551
+  parm.M = -0.85;// 874
+  parm.M = -0.87;// 1137
+  //  parm.M = -0.88;// 1348
+  //  parm.M = -0.89;// 1630
+  parm.M = -0.90;//2088
+  parm.M = -0.91;//2882
+  parm.M = -0.92;//4057
   SetWilsonParameters(&parm);
   
   DM     dm;
