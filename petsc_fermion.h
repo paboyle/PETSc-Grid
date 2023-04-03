@@ -240,12 +240,12 @@ static inline void TwoSpinAccumulate(PetscInt mu, PetscBool minus, PetscInt ldx,
  * Wilson 4d operator
  *****************************************************************************************************************
  */
-static inline void DwilsonDhopOpt1(PetscInt mu,
-				   PetscBool forward,
-				   PetscBool dag,
-				   const PetscScalar U[],
-				   const PetscScalar psi[],
-				   PetscScalar f[])
+static inline void DwilsonDhop(PetscInt mu,
+			       PetscBool forward,
+			       PetscBool dag,
+			       const PetscScalar U[],
+			       const PetscScalar psi[],
+			       PetscScalar f[])
 {
   PetscScalar utmp[6];
   PetscScalar  tmp[6];
@@ -260,94 +260,16 @@ static inline void DwilsonDhopOpt1(PetscInt mu,
   }
   for (PetscInt c = 0; c < 3; ++c) TwoSpinProject(mu, gforward, 3, &psi[c], &tmp[c]);
 
-  if (forward) {
-    for (PetscInt beta = 0; beta < 2; ++beta) {
-      for (PetscInt c1   = 0; c1 < 3; ++c1) {
-	utmp[beta*3+c1] = 0.0;
-	for (PetscInt c2   = 0; c2 < 3; ++c2) {
-	  utmp[beta*3+c1] += U[c1*3+c2]*tmp[beta*3+c2];
-	}
-      }
-    }
-  } else {
-    for (PetscInt beta = 0; beta < 2; ++beta) {
-      for (PetscInt c1   = 0; c1 < 3; ++c1) {
-	utmp[beta*3+c1] = 0.0;
-	for (PetscInt c2   = 0; c2 < 3; ++c2) {
-	  utmp[beta*3+c1] += PetscConjComplex(U[c2*3+c1])*tmp[beta*3+c2];
-	}
-      }
-    }
+
+  // Apply U
+  for (PetscInt beta = 0; beta < 2; ++beta) {
+    if (forward) DMPlex_Mult3D_Internal(U, 1, &tmp[beta * 3], &utmp[beta * 3]);
+    else DMPlex_MultTranspose3D_Internal(U,1, &tmp[beta * 3], &utmp[beta * 3]);
   }
+
   for (PetscInt c = 0; c < 3; ++c) TwoSpinAccumulate(mu, gforward, 3, &utmp[c], &f[c]);
 }
 
-static PetscErrorCode DwilsonDhopOpt(PetscInt mu,
-				     PetscBool forward,
-				     PetscBool dag,
-				     const PetscScalar U[], const PetscScalar psi[], PetscScalar f[])
-{
-  PetscScalar tmp[12];
-
-  PetscFunctionBeginHot;
-  if (forward) {
-    for (PetscInt beta = 0; beta < 4; ++beta) {
-      for (PetscInt c1   = 0; c1 < 3; ++c1) {
-	tmp[beta*3+c1] = 0.0;
-	for (PetscInt c2   = 0; c2 < 3; ++c2) {
-	  tmp[beta*3+c1] += U[c1*3+c2]*psi[beta*3+c2];
-	}
-      }
-    }
-  } else {
-    for (PetscInt beta = 0; beta < 4; ++beta) {
-      for (PetscInt c1   = 0; c1 < 3; ++c1) {
-	tmp[beta*3+c1] = 0.0;
-	for (PetscInt c2   = 0; c2 < 3; ++c2) {
-	  tmp[beta*3+c1] += PetscConjComplex(U[c2*3+c1])*psi[beta*3+c2];
-	}
-      }
-    }
-  }
-  // Apply (1 \pm \gamma_\mu)/2 to each color
-  PetscBool gforward;
-  if ( dag ) {
-    if ( forward ) gforward = PETSC_FALSE;
-    else           gforward = PETSC_TRUE;
-  } else {
-    gforward = forward;
-  }
-  for (PetscInt c = 0; c < 3; ++c) PetscCall(SpinProject(mu, gforward, 3, &tmp[c]));
-  // Note that we are subtracting this contribution
-  for (PetscInt i = 0; i < 12; ++i) f[i] -= tmp[i];
-  PetscFunctionReturn(0);
-}
-static PetscErrorCode DwilsonDhop(PetscInt mu,
-				  PetscBool forward,
-				  PetscBool dag,
-				  const PetscScalar U[], const PetscScalar psi[], PetscScalar f[])
-{
-  PetscScalar tmp[12];
-
-  PetscFunctionBeginHot;
-  // Apply U
-  for (PetscInt beta = 0; beta < 4; ++beta) {
-    if (forward) DMPlex_Mult3D_Internal(U, 1, &psi[beta * 3], &tmp[beta * 3]);
-    else DMPlex_MultTranspose3D_Internal(U, 1, &psi[beta * 3], &tmp[beta * 3]);
-  }
-  // Apply (1 \pm \gamma_\mu)/2 to each color
-  PetscBool gforward;
-  if ( dag ) {
-    if ( forward ) gforward = PETSC_FALSE;
-    else           gforward = PETSC_TRUE;
-  } else {
-    gforward = forward;
-  }
-  for (PetscInt c = 0; c < 3; ++c) PetscCall(SpinProject(mu, gforward, 3, &tmp[c]));
-  // Note that we are subtracting this contribution
-  for (PetscInt i = 0; i < 12; ++i) f[i] -= tmp[i];
-  PetscFunctionReturn(0);
-}
 /*
   The assembly loop runs over vertices. Each vertex has 2d edges in its support. The edges are ordered first by the dimension along which they run, and second from smaller to larger index, expect for edges which loop periodically. The vertices on edges are also ordered from smaller to larger index except for periodic edges.
 */
@@ -392,17 +314,13 @@ static PetscErrorCode DwilsonInternal(DM dm, Vec u, Vec f, PetscBool dag)
       DMPlexGetCone(dm, supp[2 * d + 0], &cone);
       PetscSectionGetOffset(s, cone[0], &yoff);
       PetscSectionGetOffset(sGauge, supp[2 * d + 0], &goff);
-      //PetscCall(DwilsonDhop(d, PETSC_FALSE, dag, &link[goff], &ua[yoff], &fa[xoff])); // 244ms -O0, 210ms -O3 (grid 8ms) ; 56ms
-      //PetscCall(DwilsonDhopOpt(d, PETSC_FALSE, dag, &link[goff], &ua[yoff], &fa[xoff])); // 238ms AVX2, 200ms -O3 ; debugging=0 55ms
-      DwilsonDhopOpt1(d, PETSC_FALSE, dag, &link[goff], &ua[yoff], &fa[xoff]); // 55ms , 35ms --with-debugging=0
+      DwilsonDhop(d, PETSC_FALSE, dag, &link[goff], &ua[yoff], &fa[xoff]); //
 
       // Right edge -(1 - \gamma_\mu)/2 \otimes U_\mu(x) \delta_{x + \mu,y} \psi(y)
       DMPlexGetCone(dm, supp[2 * d + 1], &cone);
       PetscSectionGetOffset(s, cone[1], &yoff);
       PetscSectionGetOffset(sGauge, supp[2 * d + 1], &goff);
-      //PetscCall(DwilsonDhop(d, PETSC_TRUE, dag, &link[goff], &ua[yoff], &fa[xoff]));
-      //      PetscCall(DwilsonDhopOpt(d, PETSC_TRUE, dag, &link[goff], &ua[yoff], &fa[xoff])); 
-      DwilsonDhopOpt1(d, PETSC_TRUE, dag, &link[goff], &ua[yoff], &fa[xoff]); 
+      DwilsonDhop(d, PETSC_TRUE, dag, &link[goff], &ua[yoff], &fa[xoff]); 
     }
   }
   PetscCall(VecRestoreArray(f, &fa));
