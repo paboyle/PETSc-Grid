@@ -10,9 +10,9 @@ NAMESPACE_BEGIN(Grid);
 int CheckDwfWithGrid(DM dm,Vec psi,Vec res)
 {
   DomainWallParameters p;
-  p.M5   = 1.4;  
+  p.M5   = 1.8;  
   p.m    = 0.01;
-  p.Ls   = 8;
+  p.Ls   = 16;
   
   SetDomainWallParameters(&p);
   
