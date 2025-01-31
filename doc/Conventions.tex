@@ -6,7 +6,7 @@
 \usepackage{color}
 \usepackage{verbatim}
 \usepackage{hyperref}
-\usepackage{dsfont}
+%\usepackage{dsfont}
 
 
 %\usepackage{dsfont}
@@ -679,107 +679,6 @@ $$
 $$
 
 
-\subsection{Known properties of the non-Free $D_W$ eigenvectors/eigenvalues}
-
-The spectrum of the gauged Wilson operator is only tractable numerically.
-
-However there are known properties to the spectrum which we derive/explain here.
-
-\subsection{$\gamma_5$ Hermiticity}
-
-The $D_w$ operator has $\gamma_5$ Hermiticity, because $\gamma_5$ anticommutes with the other Dirac matrices and due to the
-structure of the Wilson operator.
-
-The adjoint is
-\begin{eqnarray}
-  D_W(x,y) &=& (M+4)\delta_{x,y} - \frac{1}{2}\left( \delta_{y,x+\mu} (1-\gamma_mu) U(x,y)  + \frac{1}{2} \delta_{y,x-\mu} (1+\gamma_mu) U^\dagger(y,x) \right)\\
-  D_W^\dagger(y,x)
-  &=& (M+4)\delta_{y,x} - \frac{1}{2}\left( \delta_{y,x+\mu} (1-\gamma_mu) U^\dagger(y,x)  + \frac{1}{2} \delta_{y,x-\mu} (1+\gamma_mu) U^\dagger(y,x) \right)\\
-  &=& (M+4)\delta_{x,y} - \frac{1}{2}\left( \delta_{x,y-\mu} (1-\gamma_mu) U(x,y)  + \frac{1}{2} \delta_{x,y+\mu} (1+\gamma_mu) U(x,y) \right)\\
-  &=& (M+4)\delta_{x,y} - \frac{1}{2}\left( \frac{1}{2} \delta_{x,y+\mu} (1+\gamma_mu) U(x,y) + \delta_{x,y-\mu} (1-\gamma_mu) U(x,y)  \right)\\
-  &=&  \gamma_5 D_W(x,y) \gamma_5
-\end{eqnarray}
-
-{\bf Thus, because $\gamma_5$ anticommutes with the xyzt Dirac matrces, 
-we can implement the adjoint operator by merely flipping the signs of the Dirac matrices in $D_W$.}
-
-With this we see that the operator
-$
-H_W = \gamma_5 D_W 
-$
-is Hermitian 
-($
-H_W^\dagger =  D_W^\dagger \gamma_5 =  \gamma_5 D_W\gamma_5\gamma_5 =  \gamma_5 D_W = H_W
-$).
-
-
-We denote right eigenvectors of $D_W$ as $\phi_i$ and $H_W$ as $\chi_i$,
-satisfying,
-$$
-D_W \phi_i = \lambda_i \phi_i,
-$$
-and
-$$
-H_W \chi_i = \mu_i \chi_i,
-$$
-
-\subsection{Shifted spectrum}
-
-If the massless Wilson eigenvectors are $\phi_i$, given by
-$$
-D_W(m=0) \phi_i = \lambda^0 \phi_i
-$$
-Then the massive Wilson operator $D_W(m)$ obviously has the same eigenvectors $\phi_i$ and eigenvalues $\lambda^m_i = \lambda_0^i+m$.
-
-A consequence of this is that any real eigenvalue becomes a zero eigenvalue for some mass parameter $m=-\lambda_i^0$.
-
-If $D_W(m) \phi = 0$ then $\gamma_5 D_W(m) \phi = 0$ so zero modes of $D_W$ and $H_W$ coincide. By continuity arguments their near null-spectrum
-must be similar.
-
-\subsubsection{Pairing of complex eigenvalues}
-
-Consider an eigenvector
-\begin{eqnarray}
-  D \phi &=& \lambda_i \phi \\
-\Rightarrow  \gamma_5 D \gamma_5^2 \phi= \lambda_i \gamma_5 \phi\\
-\Rightarrow   D^\dagger \gamma_5 \phi= \lambda_i \gamma_5 \phi\\
-\Rightarrow   \phi^\dagger \gamma_5 D = \lambda_i^\ast  \phi^\dagger \gamma_5\\
-\Rightarrow   {\rm det} \left( D - \lambda_i^\ast I \right) = 0
-\end{eqnarray}
-
-Since right and left eigenvalues are the same (eigenvectors differ in a non-hermitian operator), we see
-that if $\lambda_i$ is complex (has non-zero imaginary component) then $\lambda_i^\ast$ is ALSO an eigenvalue.
-
-\subsubsection{$\gamma_5$ orthogonality of eigenvalues}
-
-Consider two right eigenvectors $\phi_i$ and $\phi_j$ with eigenvalues $\lambda_i$ and $\lambda_j$
-\begin{eqnarray}
-  \phi_i^\dagger \gamma_5 D \phi_j &=& \lambda_i^\ast \phi_i^\dagger \gamma_5 \phi_j\\
-  &=& \lambda_j \phi_i^\dagger \gamma_5 \phi_j
-\end{eqnarray}
-So,
-$$
-(\lambda_i^\ast - \lambda_j)   \phi_i^\dagger \gamma_5 \phi_j = 0
-$$
-and either
-$$
-\lambda_i^\ast = \lambda_j 
-$$
-OR
-$$
-\phi_i^\dagger \gamma_5  \phi_j = 0
-$$
-
-When $i=j$ we see that either the eigenvalue is real and $\phi_i^\dagger \gamma_5 \phi_j \ne 0$ is allowed,
-or the eigenvalue has non-zero imaginary part and $\phi_i^\dagger \gamma_5 \phi_j = 0$.
-
-In other words:
-\begin{itemize}
-\item complex eigenvalues have zero chirality and come in conjugate pairs
-\item real eigenvalues in general have non-zero chirality $\chi = \phi_i^\dagger \gamma_5 \phi_i$
-\item Eigenvectors with unrelated eigenvalues have vanishing chiral inner product $\phi_i^\dagger \gamma_5 \phi_j = 0$
-\end{itemize}
-
 \subsection{Gauge invariance}
 
 The (energy) action is invariant under a local redefintion of the fields $U_\mu(x)$ and $\psi(x)$.
@@ -841,6 +740,341 @@ mass of $m=0.1$.
 \end{verbatim}
 
 This provides an excellent and robust test of the code with non-trival coefficient data.
+
+
+\section{Known properties of the non-Free $D_W$ eigenvectors/eigenvalues}
+
+The spectrum of the gauged Wilson operator is only tractable numerically.
+
+However there are known properties to the spectrum which we derive/explain here.
+
+\subsection{$\gamma_5$ Hermiticity}
+
+The $D_w$ operator has $\gamma_5$ Hermiticity, because $\gamma_5$ anticommutes with the other Dirac matrices and due to the
+structure of the Wilson operator.
+
+The adjoint is
+\begin{eqnarray}
+  D_W(x,y) &=& (M+4)\delta_{x,y} - \frac{1}{2}\left( \delta_{y,x+\mu} (1-\gamma_mu) U(x,y)  + \frac{1}{2} \delta_{y,x-\mu} (1+\gamma_mu) U^\dagger(y,x) \right)\\
+  D_W^\dagger(y,x)
+  &=& (M+4)\delta_{y,x} - \frac{1}{2}\left( \delta_{y,x+\mu} (1-\gamma_mu) U^\dagger(y,x)  + \frac{1}{2} \delta_{y,x-\mu} (1+\gamma_mu) U^\dagger(y,x) \right)\\
+  &=& (M+4)\delta_{x,y} - \frac{1}{2}\left( \delta_{x,y-\mu} (1-\gamma_mu) U(x,y)  + \frac{1}{2} \delta_{x,y+\mu} (1+\gamma_mu) U(x,y) \right)\\
+  &=& (M+4)\delta_{x,y} - \frac{1}{2}\left( \frac{1}{2} \delta_{x,y+\mu} (1+\gamma_mu) U(x,y) + \delta_{x,y-\mu} (1-\gamma_mu) U(x,y)  \right)\\
+  &=&  \gamma_5 D_W(x,y) \gamma_5
+\end{eqnarray}
+
+{\bf Thus, because $\gamma_5$ anticommutes with the xyzt Dirac matrces, 
+we can implement the adjoint operator by merely flipping the signs of the Dirac matrices in $D_W$.}
+
+With this we see that the operator
+$
+H_W = \gamma_5 D_W 
+$
+is Hermitian 
+($
+H_W^\dagger =  D_W^\dagger \gamma_5 =  \gamma_5 D_W\gamma_5\gamma_5 =  \gamma_5 D_W = H_W
+$).
+
+
+We denote right eigenvectors of $D_W$ as $\phi_i$ and $H_W$ as $\chi_i$,
+satisfying,
+$$
+D_W \phi_i = \lambda_i \phi_i,
+$$
+and
+$$
+H_W \chi_i = \mu_i \chi_i,
+$$
+
+\subsection{Shifted spectrum}
+
+If the massless Wilson eigenvectors are $\phi_i$, given by
+$$
+D_W(m=0) \phi_i = \lambda^0 \phi_i
+$$
+Then the massive Wilson operator $D_W(m)$ obviously has the same eigenvectors $\phi_i$ and eigenvalues $\lambda^m_i = \lambda_0^i+m$.
+
+A consequence of this is that any real eigenvalue becomes a zero eigenvalue for some mass parameter $m=-\lambda_i^0$.
+
+If $D_W(m) \phi = 0$ then $\gamma_5 D_W(m) \phi = 0$ so zero modes of $D_W$ and $H_W$ coincide. By continuity arguments their near null-spectrum
+must be similar.
+
+\subsection{Pairing of complex eigenvalues}
+
+Consider an eigenvector
+\begin{eqnarray}
+  D \phi &=& \lambda_i \phi \\
+\Rightarrow  \gamma_5 D \gamma_5^2 \phi= \lambda_i \gamma_5 \phi\\
+\Rightarrow   D^\dagger \gamma_5 \phi= \lambda_i \gamma_5 \phi\\
+\Rightarrow   \phi^\dagger \gamma_5 D = \lambda_i^\ast  \phi^\dagger \gamma_5\\
+\Rightarrow   {\rm det} \left( D - \lambda_i^\ast I \right) = 0
+\end{eqnarray}
+
+Since right and left eigenvalues are the same (eigenvectors differ in a non-hermitian operator), we see
+that if $\lambda_i$ is complex (has non-zero imaginary component) then $\lambda_i^\ast$ is ALSO an eigenvalue.
+
+\subsection{$\gamma_5$ orthogonality of eigenvalues}
+
+Consider two right eigenvectors $\phi_i$ and $\phi_j$ with eigenvalues $\lambda_i$ and $\lambda_j$
+\begin{eqnarray}
+  \phi_i^\dagger \gamma_5 D \phi_j &=& \lambda_i^\ast \phi_i^\dagger \gamma_5 \phi_j\\
+  &=& \lambda_j \phi_i^\dagger \gamma_5 \phi_j
+\end{eqnarray}
+So,
+$$
+(\lambda_i^\ast - \lambda_j)   \phi_i^\dagger \gamma_5 \phi_j = 0
+$$
+and either
+$$
+\lambda_i^\ast = \lambda_j 
+$$
+OR
+$$
+\phi_i^\dagger \gamma_5  \phi_j = 0
+$$
+
+When $i=j$ we see that either the eigenvalue is real and $\phi_i^\dagger \gamma_5 \phi_j \ne 0$ is allowed,
+or the eigenvalue has non-zero imaginary part and $\phi_i^\dagger \gamma_5 \phi_j = 0$.
+
+In other words:
+\begin{itemize}
+\item complex eigenvalues have zero chirality and come in conjugate pairs
+\item real eigenvalues in general have non-zero chirality $\chi = \phi_i^\dagger \gamma_5 \phi_i$
+\item Eigenvectors with unrelated eigenvalues have vanishing chiral inner product $\phi_i^\dagger \gamma_5 \phi_j = 0$
+\end{itemize}
+
+
+\subsection{$\gamma_5$ symmetry, singular value decomposition and the normal equations}
+
+Suppose $D_W$ has right eigenvectors $R_i$ such that,
+$$
+D_W R_i = \lambda_i R_i,
+$$
+or in matrix notation with diagonal matrix $\Lambda$ of eigenvalues:
+$$
+D_W R = R \Lambda.
+$$
+Assuming $R$ is invertible (i.e. assuming $D_W$ is not a defective matrix) we have,
+$$
+D_W = R \Lambda R^{-1}
+$$
+The columns of R are not necessarily mutually orthogonal. The inverse $R^{-1}$ resolves
+linear combinations of non-orthogonal eigenvectors, such as $a R_1 + b R_2$ into the fundamental
+$a$ and $b$ components.
+
+% R_ij delta_jk lambda_k multiplis the k-th column of R by lambda_k as needed
+
+The left eigenvectors are such that
+$$
+L_i^\dagger D_W = \lambda_i L_i^\dagger, 
+$$
+and,
+$$
+L^\dagger D_W = \Lambda L^\dagger.
+$$
+
+As noted above, the left eigenvectors can be related to right eigenvectors with the complex conjugate eigenvalue via $\gamma_5$ hermititicy:
+\begin{eqnarray}
+  L \Lambda^\dagger &=& D_W^\dagger L = \gamma_5 D_W \gamma_5 L \\
+  D_W \gamma_5 L &=& \gamma_5 L \Lambda^\dagger,
+\end{eqnarray}
+implying that $\gamma_5 L = R$.
+
+The action of $\gamma_5$ transforms a left eigenvector with eigenvalue $\lambda$ into a right eigenvector with eigenvalue $\lambda^\ast$.
+If $\lambda_i$ is complex then the left eigenvector for $\lambda_i$ and right eigenvector for $\lambda_i^\ast$ are related by $\gamma_5$.
+If $\lambda_i$ is real then the corresponding left and right eigenvectors are related by $\gamma_5$.
+
+If we build a multigrid subspace that preserves the action of $\gamma_5$ then... WHAT IS BETTER!
+(There's been debate between Luscher and US MG folks about $\gamma_5$ compatible coarsening being better -- read up).
+(Evan alluded to instanton preservation in his talk)
+
+The {\bf singular value decomposition} of $D_W$ is,
+$$
+D_W = U \Sigma V^\dagger,
+$$
+where there is a remnant phase abiguity between rows of $U$ and $V$.
+
+The singular value decomposition of the Hermitian Wilson operator  $\gamma_5 D_W$ is
+almost identical to its eigendecomposition, and is simply related,
+$$
+H_W = V \tilde\Sigma V^\dagger = (\gamma_5 U) \Sigma V^\dagger,
+$$
+and since $H_W$ is Hermitian we see that $\gamma_5 U = {\rm sgn}(\tilde\Sigma) V$,
+where the sign of the (indefinite) eigenvalues of $H_W$ relates the positive
+valued $\Sigma$ from the SVD of $D_W$ to the signed eigenvalues of $H_W$.
+
+For the squared Dirac operator, these signs are removed and manifest positivity results
+$$
+D_W^\dagger D_W = H_W^2 = V (\Sigma)^2 V^\dagger,
+$$
+$$
+D_W D_W^\dagger = \gamma_5 H_W^2 \gamma_5= U (\Sigma)^2 U^\dagger.
+$$
+
+The singular values and absolute values of the eigenvalues of $H_W$ are necessarily the same as the singular values of $D_W$ (but differ from the eigenvalues of $D_W$). They are trivially
+related to the singular values of the squared operator.
+
+
+\subsection{Near null vectors}
+
+With (hypothetical) exact null vectors $D_W \psi = 0 = \gamma_5 D_W \psi = D_W^\dagger D_W \psi$, we expect:
+\begin{itemize}
+  \item $D_W$ has an exact zero right eigenmode, $\psi \in R$ (where ``in'' means is a column of)
+  \item $\gamma_5 \psi$ is the corresponding left zero eigenmode
+  \item The SVD of $D_W$ \emph{also} has a corresponding exactly zero singular value
+        with $\psi \in V$.
+  \item $|\gamma_5 \psi \rangle (\sigma=0) \langle \psi |$ is the corresponding null element of the SVD expansion with zero singular value (notation abuse).
+\end{itemize}
+
+This equivalence arises only algebraically for exact zero modes.
+The question arises whether near null singular values and singular vectors can be used
+to set up a non-Hermitian multigrid.
+
+This may ``obviously'' be the case for an SVD based multigrid.
+
+If we generate a space in the ``V'' space and make a $\gamma_5$ compatible coarsening (doubling the space to include
+both $V$ and $\gamma_5 V$, then the ``U'')
+
+
+\subsection{Singular value decomposition deflation and multigrid}
+
+A second approach to deflation, and potentially a novel
+approach to multigrid in the non-hermitian  case, is
+based on the singular value decomposition:
+$$
+D = U \Sigma V^\dagger,
+$$
+where $\Sigma = {\rm diag} (\sigma_i)$ is diagonal real, positive and $U$ and $V$ are unitary. The diagonal elements are the positive square roots
+of the eigenvalues of the squared operator.
+$$
+D^\dagger D = V {\rm diag} (|\sigma_i|^2) V^\dagger
+$$
+$$
+D D^\dagger = U {\rm diag} (|\sigma_i|^2) U^\dagger
+$$
+These may be solved by using Lanczos to find the eigenpairs
+of the hermitian positive
+definite problem for either $D^\dagger D$ or $D D^\dagger$.
+Once $V$ and $\Sigma$ have been found, $U$ may be constructed
+via the application of $D$, 
+$$
+D V = U \Sigma,
+$$
+though in practice with approximate eigenvectors a Lanczos restart my be preferable to retain convergence
+precision.
+Within a truncated subspace we can solve for a deflated guess via
+$$
+U \Sigma V^\dagger x = r_0
+$$
+with 
+$$
+x = \sum_i |v_i\rangle \frac{\langle u_i| r_0\rangle}{\sigma_i}.
+$$
+This suggests a potential new class of lattice multigrid methods based on the
+singular value decomposition, rather than right eigenvectors.
+
+The restriction operator can be based on a block projection of the
+$V$ vectors and prolongation on $U$. The matrix elements can be computed
+$$
+C^{ii^\prime}_{bb^\prime} = U^\dagger_b D V_{b^\prime}
+$$
+
+The filtering task of finding $V$ (and $U$) is over the real domain of singular
+values rather than a complex spectrum, and may allow better setup methods
+than inverse iteration.
+
+{\bf does this have overlap with the staggered MG coarse grid approaches? Saw reference to SVD deflation in
+  Evan's talk at CERN
+  (I previously wrote this 
+  \href{https://www.overleaf.com/read/vqywyddshbnr#b87e9e}{here}
+  )
+}
+
+\subsection{Mathworks example matrix}
+
+We know that the real spectrum of $H_W$ and complex spectrum of $D_W$ differ massively, as do their eigenvectors.
+The exact zeros must coincide, however.
+
+c.f. Saul Cohen's animation of $\Gamma_5^{\epsilon} D_{dwf}$ for $epsilon \in [0,1]$
+
+Useful document by CTO of Mathworks (Matlab) Cleve Moler:
+
+\href{https://www.mathworks.com/content/dam/mathworks/mathworks-dot-com/moler/eigs.pdf}{https://www.mathworks.com/content/dam/mathworks/mathworks-dot-com/moler/eigs.pdf}
+
+$$
+A = \left( \begin{array}{ccc}
+ -149 & -50 & -154 \\
+ 537  & 180 & 546 \\
+ -27  & -9  & -25
+\end{array}
+\right) =  X \Lambda X^{-1}
+$$
+Eigenvalues
+$$
+\Lambda ={\rm diag}(1,2,3)
+$$
+Singular values
+$$
+\Sigma = {\rm diag}(817.7597,2.4750,0.0030)
+$$
+Eigenvectors
+$$
+X = \left( \begin{array}{ccc}
+ 1  & -4 & 7 \\
+-3  & 9 & -49 \\
+ 0  & 1  & 9
+\end{array}
+\right)
+$$
+$$
+X^{-1} = \left( \begin{array}{ccc}
+ 130  & 43 & 133 \\
+ 27  & 9 & 28  \\
+ -3  &-1  & -3
+\end{array}
+\right)
+$$
+
+Peturbation analysis on matrix; introduces \emph{eigenvalue condition number} for left (y) and right (x) eigenvectors
+$$
+1\le \kappa(\lambda,A) = \frac{||y_\lambda|| ||x_\lambda||}{ \langle y_\lambda|x_\lambda \rangle} = \frac{1}{\cos \theta_{xy}}
+$$
+This factor is always 1 for Hermitian matrices, and amplifies the numerical uncertainty on the eigenvalue for increasingle non-Hermitian
+
+
+\subsection{$PV^\dagger M$ deflation}
+
+
+Use variable preconditioned GCR. Equivalent to Flexible GMRES up to rounding.
+Minimises the residual norm, difference is in orthonormal basis vs. $A^\dag A$ orthogonal basis of search directions.
+(Saad's paper on GMRES says ``theoretically equivalent'').
+
+{\bf Singular vector setup }
+
+\begin{itemize}
+\item $P^\dagger M = U \Sigma V^\dagger$
+\item First attempted Chebyshev set up in $M^\dagger P P^\dagger M = V \Sigma^\dagger \Sigma V^\dagger$
+\item Produces a polynomial of singular values and vectors  
+\item Measure ``nulliness'' of singular vector (squared operator): $\langle v | M^\dagger P^{\dagger} M | v \rangle \in \mathbb{C} $  has magnitude around $0.3$
+\item Measure ``nulliness'' of wrt. eigenvector subspace: $\langle v | P^{dag} M | v \rangle \in \mathbb{C} $ has magnitude around $0.2$
+  \begin{itemize}
+  \item $U$ / $V$ space misalignment might have made this worse!
+  \end{itemize}
+\item Chebyshev parameters lowpass of order 0.1, filter orders 400.. 1800
+\item Coarse solver, smoother (low pass GCR 16 iters, shift 1.0
+\item Solver converged, but deflation effect negligible - around 350 outer iterations
+\item Will revisit singular vector space setup
+\end{itemize}
+  
+{\bf Eigenvector setup }
+\begin{itemize}
+\item Produce vectors by inverse iteration 2/3/4 steps with sloppy solves
+\item $P^\dagger M = R \Lambda R^{-1}$
+\item Measure ``nulliness'' of wrt. eigenvector subspace: $\langle v | P^{dag} M | v \rangle \in \mathbb{C} $ has magnitude around $0.008$
+\item Solver converges with real deflation effect around 50 outer iterations
+\item Playing with number of vectors (8 - 24), block size solver parameters ($4^4$, $2^4$)
+\end{itemize}
+
 
 \section{Optimised implementation}
 
