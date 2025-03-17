@@ -1322,6 +1322,57 @@ $$
 M_{ee} \psi_e + M_{eo} \psi_o = \eta_e \Rightarrow  \psi_e = M_{ee}^{-1}  ( \eta_e - M_{eo} \psi_o )
 $$
 
+\newpage
+\section{Coarsening gauge theories}
+
+Coarsening a field with gauge degrees of freedom is more complicated than coarsening a simple scalar field because the coarsening must be compatible with gauge invariance. Suppose $\psi(n)$, $n\in\Lambda$ is a fermion field with gauge group $G$ ($G = SU(3)$ for QCD). We wish to coarsen $\psi(x)$ to $\tilde{\psi}(\tilde{n})$, with $\tilde n\in\tilde\Lambda\subset\Lambda$ a sublattice, by averaging over blocks $\mathcal B = \{B_{\tilde n}\}_{\tilde{n}\in\tilde{\Lambda}}\subset 2^\Lambda$ ($\mathcal B$ partitions $\Lambda$; typically each $B_{\tilde{n}}$ is a hypercubic block containing $\tilde{n}$). Averaging over blocks requires the connection $U_\mu(n)$, since if the gauge is not fixed then one cannot add together the field at different sites on the lattice (because in that case you could rotate the field freely at one point in the sum and change the answer in a non-covariant way). 
+
+%Averaging over blocks requires gauge fixing by a gauge transformation $\Omega(n)\in G$, since if the gauge is not fixed then one cannot add together the field at different sites on the lattice (because in that case you could rotate the field freely at one point in the sum and change the answer in a non-covariant way). 
+
+Let $\tilde{n}\in\tilde{\Lambda}$. To average over the block $\mathcal B_{\tilde{n}}$, we parallel transport the field at each point in the block to $\tilde{n}$; $\tilde{n}$ is our reference point for the block. Recall the Wilson line $W(n, m)$ transforms under gauge transformations $\Omega(n)$ as $W(n, m)\mapsto \Omega(n) W(n, m) \Omega^\dagger(m)$ and performs parallel transport of the fermion field from $m$ to $n$. The Wilson line is constructed from the gauge field $U_\mu(n)$ as a product over a path $C$ connecting $n$ to $m$,
+\begin{equation}
+	W(n, m) = \prod_{(n', \mu)\in C} U_\mu(n').
+\end{equation}
+The coarse gauge field $\tilde{\psi}(\tilde{n})$ is then the average of the fine gauge field $\psi(n)$ with the correct parallel transport,
+\begin{equation}
+	\tilde{\psi}(\tilde{n}) = \frac{1}{ | \mathcal B_{\tilde{n}} | } \sum_{m\in \mathcal B_{\tilde{n}}} W (\tilde{n}, m) \psi(m).
+\end{equation}
+
+If the theory is gauge fixed, the expression for the block average is simpler. Suppose that one fixes a gauge, implemented with a gauge transformation $g(x)\in G$. As previously, one desires the field in each block to transform homogeneously, which is implemented by $g(n) g^\dagger(m)$. The block average is then,
+\begin{equation}
+	\tilde{\psi}_g(\tilde{n}) = \frac{1}{ | \mathcal B_{\tilde{n}} | } \sum_{m\in \mathcal B_{\tilde{n}}} g(\tilde{n}) g^\dagger(m) \psi(m).
+\end{equation}
+A cartoon depiction of this setup is shown in Fig.~\ref{fig:mg_coarsen_gt}.
+
+\begin{figure}[!htp]
+	\centering
+	\includegraphics[width = 0.5\textwidth]{mg_averaging.pdf}
+	\caption{Cartoon depiction for coarsening a gauge theory. The fine lattice is denoted by the black lines, and the coarse lattice points $\tilde{n}\in\tilde{\Lambda}$ are shown in green. Four blocks $\mathcal{B}_{\tilde{n}}$ are shown in this cartoon, each of which is shaded in blue. Averaging over each block is performed by parallel transporting each point $m$ in the block to its reference point $\tilde{n}$ with $g(\tilde{n}) g^\dagger(m) \psi(m)$, which is shown in red.}
+	\label{fig:mg_coarsen_gt}
+\end{figure}
+
+%$\psi'(n)$ = fine grid prolongation from coarse field , where $m\in \mathcal B_{\tilde{n}}$
+Prolongation from the coarse field $\tilde{\psi}(\tilde{n})$ to the fine field $\psi(n)$ can be defined in a similar way: one can use standard MG prolongation stencils and techniques, as long as the prolongated field transforms covariantly under gauge rotations on the fine lattice $\Lambda$. Suppose that $m\in\Lambda$ is contained in block $\mathcal B_{\tilde{n}}$. As a simple example, a piecewise-constant prolongation over each coarse-grid block has a fine field $\psi(m)$ taking the form
+\begin{equation}
+	\psi(m) = g(m) g^\dagger(\tilde{n}) \tilde{\psi}(\tilde{n}).
+\end{equation}
+In this case, one evaluates $\psi(m)$ by with the value of the coarse field at $\tilde{n}$, and then parallel transports the value appropriately to transform under gauge transformations at $m$ as it must. 
+
+% Notation may be a bit imprecise here
+Any standard prolongation operator can be defined respecting gauge invariance as long as the fields are correctly parallel transported with $g(n) g^\dagger(m)$ before being added together. For a general stencil $s(n, m)$ that defines the prolongation operator\footnote{For example, on a 2D grid, the stencil \begin{equation} s(n, m) \rightarrow \frac{1}{4} \left] \begin{matrix} 1 & 2 & 1 \\ 2 & 4 & 2 \\ 1 & 2 & 1 \end{matrix} \right[ \end{equation} that implements a 2D linear interpolation. }, the stencil can correctly take into account gauge invariance by being augmented with the correct gauge transformation,
+\begin{equation}
+	\psi(m) = \sum_{n\in\Lambda} s(m, n) g(m) g^\dagger(n) \tilde{\psi}(n).
+\end{equation}
+Here the coarse field $\tilde{\psi}(n)$ is defined on the fine lattice $n\in\Lambda$ with the canonical embedding,
+\begin{equation}
+	\tilde{\psi}(n) = \begin{cases} 
+		\tilde{\psi}(n) & n\in\tilde{\Lambda} \\
+		0 		    & n\notin \tilde{\Lambda} 
+	\end{cases}.
+\end{equation}
+In the case where the gauge fixing matrix $g(n)$ is unity, or when we do not have to worry about a gauge field, this should reduce to the usual interpolation operator from the stencil $s(n, m)$. 
+
+
 \chapter{General Cayley form}
 
 Now consider a generalisation of the action that includes
